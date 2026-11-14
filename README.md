@@ -36,7 +36,7 @@ Then set `CONTRACT` in `index.html` and enable GitHub Pages.
 ## Honest limits
 
 - Hackathon prototype on testnet, no financial value, not financial advice.
-- The website is read-only; actions use the CLI. Wallet connect is the next step.
+- The website connects a NEAR wallet (Register, Check in, Claim); CLI commands are also shown.
 - Rounds only close when someone calls `check_in`, `settle` or `claim`.
 
 ## License
