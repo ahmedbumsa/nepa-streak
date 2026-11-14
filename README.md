@@ -1,6 +1,6 @@
 # $NEPA Streak
 
-**Track:** Memecoins With Mechanics · **Network:** NEAR testnet · **Live page:** `https://YOUR-USERNAME.github.io/YOUR-REPO/`
+**Track:** Memecoins With Mechanics · **Network:** NEAR testnet · **Live page:** `https://nepa-streak.vercel.app/`
 
 The joke needs rules. $NEPA is a NEP-141 token with a daily "Up NEPA!" ritual enforced by the contract:
 
@@ -42,3 +42,5 @@ Then set `CONTRACT` in `index.html` and enable GitHub Pages.
 ## License
 
 MIT
+
+Deployed testnet contract: nepa-ahmedbumsa.testnet
