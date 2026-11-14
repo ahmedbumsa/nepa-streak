@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$NEPA Streak – a meme coin with rules</title>
+<meta name="description" content="Check in daily. If the community hits the target, everyone who checked in is minted tokens. If not, the treasury burns. All rules live in the NEAR contract.">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1a2e;--fg:#e8edf7;--muted:#9aa7c0;--line:#26344f;--card:#16233b;--accent:#ffb800;--accent-fg:#1a1200;--font:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif}
+body.on{--bg:#f2faf3;--fg:#0f2b1a;--muted:#4d6a58;--line:#c9e3d0;--card:#fff;--accent:#0a7d3b;--accent-fg:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 1.0625rem/1.6 var(--font);transition:background .6s,color .6s}
+main{max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem 4rem}
+h1,h2{line-height:1.05;letter-spacing:-.02em;margin:0}
+h1{font-size:clamp(2.4rem,10vw,4.5rem);font-weight:800}
+h2{font-size:1.5rem;font-weight:800;margin-bottom:.5rem}
+section{padding-top:3rem}p{margin:.4rem 0 1rem;max-width:62ch}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.top{display:flex;justify-content:space-between;font-weight:800}.top span,.note{color:var(--muted);font-weight:400;font-size:.9rem}
+.bulb{width:7rem;height:7rem;border-radius:50%;background:#2a3956;box-shadow:inset 0 0 0 6px #35466a;margin:1.25rem 0;transition:all .6s}
+body.on .bulb{background:#ffd54a;box-shadow:0 0 0 6px #ffe48a,0 0 80px 26px rgba(255,200,40,.6)}
+.bar{height:.9rem;border-radius:.5rem;background:var(--line);overflow:hidden;margin:.5rem 0}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .5s}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:1.25rem;margin:1.25rem 0}
+.stats div{border-left:4px solid var(--accent);padding-left:.9rem}
+.stats strong{display:block;font-size:1.5rem;font-weight:800;font-variant-numeric:tabular-nums}
+.stats span{color:var(--muted);font-size:.9rem}
+label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:.3rem}
+input{font:inherit;padding:.8rem;border-radius:.6rem;border:2px solid var(--line);background:var(--card);color:var(--fg);width:100%;max-width:22rem;min-height:3rem}
+.cmd{background:var(--card);border:2px solid var(--line);border-radius:.6rem;padding:.8rem 1rem;margin:.5rem 0 1rem}
+.cmd b{display:block;margin-bottom:.25rem}
+.cmd code{display:block;font:.8rem/1.5 ui-monospace,Menlo,monospace;word-break:break-all;white-space:pre-wrap}
+.btn{font:inherit;font-weight:600;padding:.6rem 1rem;border-radius:.5rem;border:0;background:var(--accent);color:var(--accent-fg);cursor:pointer;min-height:2.75rem;margin-top:.5rem}
+#err{color:#d64545}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<div class="top">$NEPA <span>Memecoins With Mechanics · NEAR testnet</span></div>
+
+<section style="padding-top:2rem">
+  <h1 id="head">Light don go.</h1>
+  <div class="bulb" role="img" aria-label="Bulb: lit when today's target is reached"></div>
+  <p id="sub" role="status" aria-live="polite">Loading the contract…</p>
+  <div class="bar" aria-hidden="true"><i id="fill"></i></div>
+  <p id="err" role="alert"></p>
+  <div class="stats">
+    <div><strong id="streak">–</strong><span>current streak (days)</span></div>
+    <div><strong id="best">–</strong><span>best streak</span></div>
+    <div><strong id="treasury">–</strong><span>NEPA in treasury</span></div>
+    <div><strong id="supply">–</strong><span>total supply</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>The rules</h2>
+  <p id="rules">Loading…</p>
+  <p class="note">These numbers are read straight from the contract. There is no admin function that can change them.</p>
+</section>
+
+<section>
+  <h2>Try it: do X, see Y</h2>
+  <p>Enter your testnet account and copy the commands. Run them in a terminal with near-cli-rs installed.</p>
+  <label for="acct">Your testnet account</label>
+  <input id="acct" placeholder="yourname.testnet" autocomplete="off" autocapitalize="none" spellcheck="false">
+  <div class="cmd"><b>1. Register (once)</b><code id="c1"></code><button class="btn" data-c="c1">Copy</button></div>
+  <div class="cmd"><b>2. Check in. Expect: “checkins today” goes up by one</b><code id="c2"></code><button class="btn" data-c="c2">Copy</button></div>
+  <div class="cmd"><b>3. After a successful day, claim. Expect: your balance grows</b><code id="c3"></code><button class="btn" data-c="c3">Copy</button></div>
+  <p class="note">Wallet buttons are next on the roadmap. For now the page is the live scoreboard and the commands are the controls.</p>
+</section>
+
+<footer class="note" style="margin-top:3rem">Hackathon prototype on testnet. No financial value, not financial advice. Built for the NEAR HACKATHON.</footer>
+</main>
+
+<script>
+(function(){
+  var CONTRACT="nepa.YOUR-ACCOUNT.testnet";           // set after deploy
+  var RPCS=["https://test.rpc.fastnear.com","https://rpc.testnet.near.org"];
+  var $=function(i){return document.getElementById(i)};
+  var DEC=8;
+  function fmt(raw){var n=Number(BigInt(raw)/BigInt(Math.pow(10,DEC)));return n.toLocaleString()}
+  async function view(method,args){
+    var body=JSON.stringify({jsonrpc:"2.0",id:"n",method:"query",params:{request_type:"call_function",finality:"final",account_id:CONTRACT,method_name:method,args_base64:btoa(JSON.stringify(args||{}))}});
+    var last;
+    for(var i=0;i<RPCS.length;i++){
+      try{
+        var r=await fetch(RPCS[i],{method:"POST",headers:{"Content-Type":"application/json"},body:body});
+        var j=await r.json();
+        if(j.error||!j.result||j.result.error)throw new Error("rpc error");
+        return JSON.parse(new TextDecoder().decode(new Uint8Array(j.result.result)));
+      }catch(e){last=e}
+    }
+    throw last;
+  }
+  async function load(){
+    if(CONTRACT.indexOf("YOUR")>-1){$("sub").textContent="Contract not set yet. Edit CONTRACT in index.html after deploying.";return}
+    try{
+      var s=await view("get_state"),t=await view("ft_balance_of",{account_id:CONTRACT}),sup=await view("ft_total_supply");
+      var hit=s.checkins_today>=s.target;
+      document.body.classList.toggle("on",hit);
+      $("head").textContent=hit?"Up NEPA!":"Light don go.";
+      $("sub").textContent=s.checkins_today+" of "+s.target+" check-ins today"+(s.needs_settle?". Yesterday is waiting to be settled.":".");
+      $("fill").style.width=Math.min(100,s.checkins_today/s.target*100)+"%";
+      $("streak").textContent=s.streak;$("best").textContent=s.best_streak;
+      $("treasury").textContent=fmt(t);$("supply").textContent=fmt(sup);
+      $("rules").textContent="Each "+(s.epoch_secs>=86400?"day":s.epoch_secs+"-second round")+" you can check in once. Reach "+s.target+" check-ins and everyone who checked in is minted "+fmt(s.mint_amount)+" NEPA and the streak grows. Miss it and "+(s.burn_bps/100)+"% of the treasury is burned and the streak resets.";
+      $("err").textContent="";
+    }catch(e){$("err").textContent="Could not read the contract. Check the contract name and your connection."}
+  }
+  function cmds(){
+    var a=$("acct").value.trim()||"YOU.testnet";
+    var base="near contract call-function as-transaction "+CONTRACT+" ";
+    var tail=" prepaid-gas '30 Tgas' attached-deposit '";
+    var sign="' sign-as "+a+" network-config testnet";
+    $("c1").textContent=base+"storage_deposit json-args '{}'"+tail+"0.00125 NEAR"+sign;
+    $("c2").textContent=base+"check_in json-args '{}'"+tail+"0 NEAR"+sign;
+    $("c3").textContent=base+"claim json-args '{}'"+tail+"0 NEAR"+sign;
+  }
+  document.querySelectorAll("[data-c]").forEach(function(b){b.addEventListener("click",function(){
+    var t=$(b.dataset.c).textContent;
+    if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){b.textContent="Copied"});
+  })});
+  $("acct").addEventListener("input",cmds);
+  cmds();load();setInterval(load,20000);
+})();
+</script>
+</body>
+</html>
