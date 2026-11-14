@@ -8,7 +8,7 @@ use near_contract_standards::fungible_token::events::{FtBurn, FtMint};
 use near_contract_standards::fungible_token::metadata::{
     FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC,
 };
-use near_contract_standards::fungible_token::{FungibleToken, FungibleTokenCore, FungibleTokenResolver};
+use near_contract_standards::fungible_token::FungibleToken;
 use near_sdk::borsh::BorshSerialize;
 use near_sdk::collections::LazyOption;
 use near_sdk::json_types::U128;
@@ -201,11 +201,26 @@ impl Contract {
 }
 
 near_contract_standards::impl_fungible_token_core!(Contract, token);
-near_contract_standards::impl_fungible_token_storage!(Contract, token);
 
 #[near]
 impl FungibleTokenMetadataProvider for Contract {
     fn ft_metadata(&self) -> FungibleTokenMetadata {
         self.metadata.get().unwrap()
+    }
+}
+
+use near_contract_standards::storage_management::{StorageBalance, StorageBalanceBounds, StorageManagement};
+
+#[near]
+impl Contract {
+    #[payable]
+    pub fn storage_deposit(&mut self, account_id: Option<AccountId>, registration_only: Option<bool>) -> StorageBalance {
+        self.token.storage_deposit(account_id, registration_only)
+    }
+    pub fn storage_balance_of(&self, account_id: AccountId) -> Option<StorageBalance> {
+        self.token.storage_balance_of(account_id)
+    }
+    pub fn storage_balance_bounds(&self) -> StorageBalanceBounds {
+        self.token.storage_balance_bounds()
     }
 }
