@@ -71,6 +71,13 @@ input{font:inherit;padding:.8rem;border-radius:.6rem;border:2px solid var(--line
   <p class="note">Wallet buttons are next on the roadmap. For now the page is the live scoreboard and the commands are the controls.</p>
 </section>
 
+<section id="wal"><h2>Play with your wallet</h2>
+<p class="note" id="who">Not connected.</p>
+<button class="btn" id="wc">Connect wallet</button>
+<button class="btn" id="wr">Register</button>
+<button class="btn" id="wi">Check in</button>
+<button class="btn" id="wl">Claim</button>
+<p class="note" id="wm" role="status"></p></section>
 <footer class="note" style="margin-top:3rem">Hackathon prototype on testnet. No financial value, not financial advice. Built for the NEAR HACKATHON.</footer>
 </main>
 
@@ -125,6 +132,27 @@ input{font:inherit;padding:.8rem;border-radius:.6rem;border:2px solid var(--line
   $("acct").addEventListener("input",cmds);
   cmds();load();setInterval(load,20000);
 })();
+</script>
+<script type="module">
+const $=id=>document.getElementById(id);
+try{
+const {NearConnector}=await import("https://cdn.jsdelivr.net/npm/@hot-labs/near-connect@0.11.1/+esm");
+const C="nepa-ahmedbumsa.testnet";
+const conn=new NearConnector({network:"testnet"});
+await conn.whenManifestLoaded;
+async function call(m,dep){
+ try{const w=await conn.wallet();$("wm").textContent="Confirm in your wallet...";
+ await w.signAndSendTransaction({receiverId:C,actions:[{type:"FunctionCall",params:{methodName:m,args:{},gas:"30000000000000",deposit:dep}}]});
+ $("wm").textContent=m+" sent. The scoreboard refreshes in a few seconds.";}
+ catch(e){$("wm").textContent="Cancelled, or connect your wallet first.";}
+}
+async function who(){try{const w=await conn.wallet();const a=await w.getAccounts();$("who").textContent="Connected: "+a[0].accountId;}catch(e){$("who").textContent="Connected.";}}
+conn.on("wallet:signIn",who);
+$("wc").onclick=()=>conn.connect();
+$("wr").onclick=()=>call("storage_deposit","1250000000000000000000");
+$("wi").onclick=()=>call("check_in","0");
+$("wl").onclick=()=>call("claim","0");
+}catch(e){$("wm").textContent="Wallet connect is unavailable here. Use the commands above.";}
 </script>
 </body>
 </html>
